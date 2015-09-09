@@ -9,6 +9,7 @@ _.each([
     require("./widgets/example-graphie-widget.jsx"),
     require("./widgets/explanation.jsx"),
     require("./widgets/expression.jsx"),
+    require("./widgets/free-text-input.jsx"),
     require("./widgets/grapher.jsx"),
     require("./widgets/group.jsx"),
     require("./widgets/iframe.jsx"),
