@@ -754,6 +754,39 @@ const KhanAnswerTypes = {
             };
         },
     },
+    text: {
+        createValidatorFunctional: function(solution, options) {
+            solution = solution.trim();
+            return function(guess) {
+                guess = guess.trim();
+                const score = {
+                    empty: false,
+                    correct: false,
+                    message: null,
+                    guess: guess,
+                };
+                if (options.free) {
+                    score.correct = true;
+                    return score;
+                }
+                // Don't bother parsing an empty input
+                if (!guess) {
+                    score.empty = true;
+                    return score;
+                }
+
+                if (solution === guess) {
+                    score.correct = true;
+                } else if (guess.indexOf(solution) > -1) {
+                    score.message = i18n._('You wrote a little too much')
+                } else if (solution.indexOf(guess) > -1) {
+                    score.message = i18n._('You need to write a little more')
+                }
+
+                return score;
+            };
+        },
+    },
 };
 
 module.exports = KhanAnswerTypes;

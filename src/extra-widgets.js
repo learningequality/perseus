@@ -131,6 +131,9 @@ module.exports = [
         require("./widgets/video.jsx"),
         __EDITOR__ && require("./widgets/video-editor.jsx"),
     ],
+    [
+        require("./widgets/free-text-input.jsx"),
+    ],
     // These widgets are only used when testing things, so remove them in the
     // non-editor bundle.
     __EDITOR__ && [
