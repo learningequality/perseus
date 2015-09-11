@@ -96,14 +96,15 @@ var FreeTextInput = React.createClass({
         var input = <TextArea
             ref="input"
             value={this.props.currentValue}
+            rows={this.props.rows}
+            cols={this.props.cols}
             onChange={this.handleChange}
             className={classNames(classes)}
             type={this._getInputType()}
             examples={this.examples()}
             shouldShowExamples={this.shouldShowExamples()}
             onFocus={this._handleFocus}
-            onBlur={this._handleBlur}
-            {...this.props} />;
+            onBlur={this._handleBlur} />;
 
         var inputWithLabel;
         if (this.props.labelText) {
