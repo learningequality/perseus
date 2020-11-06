@@ -765,10 +765,6 @@ const KhanAnswerTypes = {
                     message: null,
                     guess: guess,
                 };
-                if (options.free) {
-                    score.correct = true;
-                    return score;
-                }
                 // Don't bother parsing an empty input
                 if (!guess) {
                     score.empty = true;

@@ -30,6 +30,7 @@ const TextArea = React.createClass({
             <textarea
                 {...props}
                 type="text"
+                autocomplete="off"
                 aria-label={labelText}
                 onChange={e => this.props.onChange(e.target.value)}
             />

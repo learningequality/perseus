@@ -16,43 +16,28 @@ const {
     linterContextProps,
     linterContextDefault,
 } = require("../gorgon/proptypes.js");
-const {iconDropdownArrow} = require("../icon-paths.js");
-const InlineIcon = require("../components/inline-icon.jsx");
-
-var answerFormButtons = [
-    {title: "Free Response", value: "text", content: "Any text at all"}
-];
-
-var formExamples = {
-    text: form => form.free ? i18n._("your answer will be saved but not graded") : i18n._("a few words"),
-};
 
 var FreeTextInput = React.createClass({
     propTypes: {
         currentValue: React.PropTypes.string,
         currentMultipleValues: React.PropTypes.arrayOf(React.PropTypes.string),
         apiOptions: ApiOptions.propTypes,
-        answerForms: React.PropTypes.arrayOf(
-            React.PropTypes.shape({
-                name: React.PropTypes.string.isRequired,
-                // Whether we are doing exact matching or just collecting free response
-                free: React.PropTypes.bool,
-            })
-        ),
         labelText: React.PropTypes.string,
         trackInteraction: React.PropTypes.func.isRequired,
         widgetId: React.PropTypes.string.isRequired,
         linterContext: linterContextProps,
+        cols: React.PropTypes.number,
+        rows: React.PropTypes.number,
     },
 
     getDefaultProps: function() {
         return {
             currentValue: "",
-            size: "normal",
             apiOptions: ApiOptions.defaults,
-            answerForms: [],
             labelText: "",
             linterContext: linterContextDefault,
+            cols: 50,
+            rows: 5,
         };
     },
 
@@ -77,11 +62,11 @@ var FreeTextInput = React.createClass({
         return <TextArea
             ref="input"
             value={this.props.currentValue}
+            cols={this.props.cols}
+            rows={this.props.rows}
             onChange={this.handleChange}
             className={classNames(classes, css(styles.textInput))}
             labelText={labelText}
-            examples={this.examples()}
-            shouldShowExamples={this.shouldShowExamples()}
             onFocus={this._handleFocus}
             onBlur={this._handleBlur}
             id={this.props.widgetId}
@@ -145,44 +130,10 @@ var FreeTextInput = React.createClass({
         return FreeTextInput.validate(this.getUserInput(), rubric);
     },
 
-    shouldShowExamples: function() {
-        var noFormsAccepted = this.props.answerForms.length === 0;
-        // To check if all answer forms are accepted, we must first
-        // find the *names* of all accepted forms, and see if they are
-        // all present, ignoring duplicates
-        var answerFormNames = _.uniq(
-            this.props.answerForms.map(form => form.name)
-        );
-        var allFormsAccepted = answerFormNames.length >= _.size(formExamples);
-        return !noFormsAccepted && !allFormsAccepted;
-    },
-
-    examples: function() {
-        // if the set of specified forms are empty, allow all forms
-        var forms =
-            this.props.answerForms.length !== 0
-                ? this.props.answerForms
-                : _.map(_.keys(formExamples), name => {
-                      return {
-                          name: name,
-                      };
-                  });
-
-        var examples = _.map(forms, form => {
-            return formExamples[form.name](form);
-        });
-        // Ensure no duplicate tooltip text from simplified and unsimplified
-        // versions of the same format
-        examples = _.uniq(examples);
-
-        return [i18n._("**Your answer should be** ")].concat(examples);
-    },
 });
 
 _.extend(FreeTextInput, {
     validate: function(state, rubric) {
-        var allAnswerForms = _.pluck(answerFormButtons, "value");
-
         var createValidator = answer =>
             KhanAnswerTypes.text.createValidatorFunctional(answer.value, {
                 exact: state.exact,
@@ -239,63 +190,6 @@ _.extend(FreeTextInput, {
     },
 });
 
-// TODO(thomas): Currently we receive a list of lists of acceptable answer types
-// and union them down into a single set. It's worth considering whether it
-// wouldn't make more sense to have a single set of acceptable answer types for
-// a given *problem* rather than for each possible [correct/wrong] *answer*.
-// When should two answers to a problem take different answer types?
-// See D27790 for more discussion.
-var unionAnswerForms = function(answerFormsList) {
-    // Takes a list of lists of answer forms, and returns a list of the forms
-    // in each of these lists in the same order that they're listed in the
-    // `formExamples` forms from above.
-
-    // uniqueBy takes a list of elements and a function which compares whether
-    // two elements are equal, and returns a list of unique elements. This is
-    // just a helper function here, but works generally.
-    var uniqueBy = function(list, iteratee) {
-        return _.reduce(
-            list,
-            (uniqueList, element) => {
-                // For each element, decide whether it's already in the list of
-                // unique items.
-                var inList = _.find(uniqueList, iteratee.bind(null, element));
-                if (inList) {
-                    return uniqueList;
-                } else {
-                    return uniqueList.concat([element]);
-                }
-            },
-            []
-        );
-    };
-
-    // Pull out all of the forms from the different lists.
-    var allForms = _.flatten(answerFormsList);
-    // Pull out the unique forms using uniqueBy.
-    var uniqueForms = uniqueBy(allForms, _.isEqual);
-    // Sort them by the order they appear in the `formExamples` list.
-    return _.sortBy(uniqueForms, form => {
-        return _.keys(formExamples).indexOf(form.name);
-    });
-};
-
-var propsTransform = function(editorProps) {
-    var rendererProps = _.extend(_.omit(editorProps, "answers"), {
-        answerForms: unionAnswerForms(
-            _.map(editorProps.answers, answer => {
-                return _.map(answer.answerForms, form => {
-                    return {
-                        name: form,
-                    };
-                });
-            })
-        ),
-    });
-
-    return rendererProps;
-};
-
 const styles = StyleSheet.create({
     textInput: {
         float: "right",
@@ -319,6 +213,5 @@ module.exports = {
     defaultAlignment: "inline-block",
     accessible: true,
     widget: FreeTextInput,
-    transform: propsTransform,
     isLintable: true,
 };
