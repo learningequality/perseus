@@ -12,6 +12,7 @@ var TextArea = require("../components/text-area.jsx");
 
 var ApiClassNames = require("../perseus-api.jsx").ClassNames;
 var ApiOptions = require("../perseus-api.jsx").Options;
+const KhanAnswerTypes = require("../util/answer-types.js");
 const {
     linterContextProps,
     linterContextDefault,
@@ -48,7 +49,7 @@ var FreeTextInput = React.createClass({
     getClasses: function() {
         const classes = {};
         classes["perseus-input-size-" + this.props.size] = true;
-        classes[ApiClassNames.UNANSWERED] = rubric && !this.props.currentValue;
+        classes[ApiClassNames.UNANSWERED] = !this.props.currentValue;
         return classes;
     },
 
@@ -71,7 +72,6 @@ var FreeTextInput = React.createClass({
             onBlur={this._handleBlur}
             id={this.props.widgetId}
             disabled={this.props.apiOptions.readOnly}
-            highlightLint={this.props.highlightLint}
         />
     },
 
@@ -119,7 +119,7 @@ var FreeTextInput = React.createClass({
     },
 
     setInputValue: function(path, newValue, cb) {
-        this.props.onChange(newValue, cb);
+        this.props.onChange({currentValue: newValue}, cb);
     },
 
     getUserInput: function() {
@@ -133,13 +133,10 @@ var FreeTextInput = React.createClass({
 });
 
 _.extend(FreeTextInput, {
-    validate: function(state, rubric) {
+    validate: function(currentValue, rubric) {
         var createValidator = answer =>
-            KhanAnswerTypes.text.createValidatorFunctional(answer.value, {
-                exact: state.exact,
-            });
+            KhanAnswerTypes.text.createValidatorFunctional(answer.value);
 
-        var currentValue = state.currentValue;
         var correctAnswers = _.where(rubric.answers, {status: "correct"});
 
         // Look through all correct answers for one that matches either
@@ -193,7 +190,6 @@ _.extend(FreeTextInput, {
 const styles = StyleSheet.create({
     textInput: {
         float: "right",
-        width: 170,
         marginBottom: 10,
         border: `1px solid ${styleConstants.gray76}`,
         borderRadius: 4,
