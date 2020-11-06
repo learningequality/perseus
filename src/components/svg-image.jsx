@@ -87,10 +87,16 @@ function getBaseUrl(url) {
 }
 
 function getSvgUrl(url) {
+    if (Khan.imageUrls) {
+        return Khan.imageUrls[url.replace(svgLabelsRegex, '') + ".svg"]
+    }
     return getBaseUrl(url) + ".svg";
 }
 
 function getDataUrl(url) {
+    if (Khan.imageUrls) {
+        return Khan.imageUrls[url.replace(svgLabelsRegex, '') + "-data.json"]
+    }
     return getBaseUrl(url) + "-data.json";
 }
 
@@ -134,21 +140,6 @@ if (shouldRenderJipt()) {
         }
         return text;
     });
-}
-
-// A regex to split at the last / of a URL, separating the base part from the
-// hash. This is used to create the localized label data URLs.
-const splitHashRegex = /\/(?=[^/]+$)/;
-
-function getLocalizedDataUrl(url) {
-    if (typeof KA !== "undefined") {
-        // Parse out the hash and base so that we can insert the locale
-        // directory in the middle.
-        const [base, hash] = getBaseUrl(url).split(splitHashRegex);
-        return `${base}/${KA.language}/${hash}-data.json`;
-    } else {
-        return getDataUrl(url);
-    }
 }
 
 // Get the hash from the url, which is just the filename
@@ -309,7 +300,7 @@ const SvgImage = React.createClass({
                 loaded: false,
                 dataCallbacks: [this.onDataLoaded],
                 data: null,
-                localized: shouldUseLocalizedData(),
+                localized: false,
             };
 
             labelDataCache[hash] = cacheData;
@@ -329,37 +320,14 @@ const SvgImage = React.createClass({
                 });
             };
 
-            if (shouldUseLocalizedData()) {
-                retrieveData(
-                    getLocalizedDataUrl(this.props.src),
-                    (x, status, error) => {
-                        cacheData.localized = false;
-
-                        // If there is isn't any localized data, fall back to
-                        // the original, unlocalized data
-                        retrieveData(
-                            getDataUrl(this.props.src),
-                            (x, status, error) => {
-                                // eslint-disable-next-line no-console
-                                console.error(
-                                    "Data load failed:",
-                                    getDataUrl(this.props.src),
-                                    error
-                                );
-                            }
-                        );
-                    }
+            retrieveData(getDataUrl(this.props.src), (x, status, error) => {
+                // eslint-disable-next-line no-console
+                console.error(
+                    "Data load failed:",
+                    getDataUrl(this.props.src),
+                    error
                 );
-            } else {
-                retrieveData(getDataUrl(this.props.src), (x, status, error) => {
-                    // eslint-disable-next-line no-console
-                    console.error(
-                        "Data load failed:",
-                        getDataUrl(this.props.src),
-                        error
-                    );
-                });
-            }
+            });
         }
     },
 
