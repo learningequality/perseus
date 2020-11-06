@@ -180,7 +180,7 @@ var Widgets = {
         // Minor version upgrades (eg. new optional props) don't have
         // transform functions. Instead, we fill in the new props with their
         // defaults.
-        var defaultProps = editors[type].defaultProps;
+        var defaultProps = (editors[type] || {}).defaultProps || {};
         newEditorProps = _.extend({}, defaultProps, newEditorProps);
 
         var alignment = oldWidgetInfo.alignment;
